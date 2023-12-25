@@ -54,18 +54,39 @@ def thirdColumn(search):
     return productPrice
 
 
+@app.route('/api/get_data', methods=['GET'])
+def get_data():
+    modelNumber = request.args.get('modelNumber')
+
+    partSelectURL = 'https://www.partselect.com/Models/{}/'.format(modelNumber)
+    response = requests.get(partSelectURL)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+
+    searches = []
+    partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
+    for part in partDivElements[:2]:
+        modelEle = part.find('div', class_='mb-1')
+        manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
+        search = appliance + ' ' + manufacturerNum
+        searches.append(search)
+
+    data = []
+    for search in searches[:1]:
+        di = {}
+        first = firstColumn(search)
+        second = secondColumn(search)
+        third = thirdColumn(search)
+
+        di['search'] = search
+        di['firstColumn'] = first
+        di['secondColumn'] = second
+        di['thirdColumn'] = third
+        print(di)
+        data.append(di)
+
+    return jsonify(data)
+
 @app.route('/')
 def index():
-    # response = requests.get('https://www.ebay.com/sch/i.html?_from=R40&_trksid=p2334524.m570.l1313&_nkw=Refrigerator+Door+Shelf+Retainer+Bin')
-    # a = response.content
     return render_template('index.html')
-    # , methods=['GET', 'POST']
-    # if request.method == 'POST':
-    #     model_number = request.form['modelNumber']
-    #     result_data = findPrice(model_number)
-    #     return render_template('index.html', result=result_data)
-
-    # return render_template('index.html', result=None)
-
-# if __name__ == '__main__':
-#     app.run()
