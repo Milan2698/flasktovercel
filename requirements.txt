@@ -2,3 +2,4 @@ Flask
 Gunicorn
 requests
 beautifulsoup4
+Flask-HTTPAuth

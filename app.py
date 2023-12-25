@@ -1,10 +1,18 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
+from flask_httpauth import HTTPBasicAuth
+
+auth = HTTPBasicAuth()
 
 
 app = Flask(__name__)
-# app.secret_key = 'secret_key'
+
+
+@auth.verify_password
+def verify_password(username, password):
+    # Replace 'your_username' and 'your_password' with your desired credentials
+    return username == 'admin' and password == '123'
 
 
 def firstColumn(search):
@@ -62,17 +70,27 @@ def get_data():
     response = requests.get(partSelectURL)
     soup = BeautifulSoup(response.content, 'html.parser')
     appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+    pagination = soup.find('ul', class_='pagination js-pagination')
+    if pagination is not None:
+        total_page = int(pagination.find_all('li')[-2].find('a').text)
+    else:
+        total_page = 1
 
     searches = []
-    partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
-    for part in partDivElements[:2]:
-        modelEle = part.find('div', class_='mb-1')
-        manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
-        search = appliance + ' ' + manufacturerNum
-        searches.append(search)
+
+    for page in range(1,total_page+1):
+        partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
+        response = requests.get(partSelectURL)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
+        for part in partDivElements:
+            modelEle = part.find('div', class_='mb-1')
+            manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
+            search = appliance + ' ' + manufacturerNum
+            searches.append(search)
 
     data = []
-    for search in searches[:1]:
+    for search in searches:
         di = {}
         first = firstColumn(search)
         second = secondColumn(search)
@@ -82,11 +100,11 @@ def get_data():
         di['firstColumn'] = first
         di['secondColumn'] = second
         di['thirdColumn'] = third
-        print(di)
         data.append(di)
 
     return jsonify(data)
 
 @app.route('/')
+@auth.login_required
 def index():
     return render_template('index.html')
