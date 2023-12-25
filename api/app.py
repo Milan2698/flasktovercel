@@ -1,4 +1,6 @@
 from flask import Flask
+import requests
+# from bs4 import BeautifulSoup
 # import requests
 # from bs4 import BeautifulSoup
 
@@ -12,7 +14,9 @@ app.secret_key = 'secret_key'
 
 @app.route('/')
 def index():
-    return 'Hello vercel'
+    response = requests.get('https://www.ebay.com/sch/i.html?_from=R40&_trksid=p2334524.m570.l1313&_nkw=Refrigerator+Door+Shelf+Retainer+Bin')
+    a = response.content
+    return a
     # , methods=['GET', 'POST']
     # if request.method == 'POST':
     #     model_number = request.form['modelNumber']
