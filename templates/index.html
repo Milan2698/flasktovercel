@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Example</title>
+</head>
+<body>
+    <h1>Flask API Example</h1>
+    <form id="dataForm">
+        <label for="modelNumber">Enter Model Number:</label>
+        <input type="text" id="modelNumber" name="modelNumber" required>
+        <button type="button" onclick="getData()">Get Data</button>
+    </form>
+
+    <div id="resultTable"></div>
+
+    <script>
+        function getData() {
+            var modelNumber = document.getElementById('modelNumber').value;
+            fetch('/api/get_data?modelNumber=' + modelNumber)
+                .then(response => response.json())
+                .then(data => {
+                    var table = '<table border="1"><tr><th>Search</th><th>First Column</th><th>Second Column</th><th>Third Column</th></tr>';
+                    data.forEach(item => {
+                        table += '<tr><td>' + item.search + '</td><td>' + item.firstColumn + '</td><td>' + item.secondColumn + '</td><td>' + item.thirdColumn + '</td></tr>';
+                    });
+                    table += '</table>';
+                    document.getElementById('resultTable').innerHTML = table;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
