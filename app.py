@@ -24,7 +24,10 @@ def firstColumn(search):
     total_result = int(soup.find('h1', class_='srp-controls__count-heading').find('span').text)
     productPrice = None
     if total_result != 0:
-        productPriceTag = soup.find('span', class_='s-item__price')
+        productPriceUL = soup.find('ul', class_='srp-results srp-list clearfix')
+        if productPriceUL is None:
+            productPriceUL = soup.find('ul', class_='srp-results srp-grid clearfix')
+        productPriceTag = productPriceUL.find('span', class_='s-item__price')
         if productPriceTag is not None:
             productPrice = productPriceTag.text
             heading = soup.find_all('div', class_='s-item__title')[1].find('span', role='heading').text
@@ -43,7 +46,10 @@ def secondColumn(search):
     total_result = int(soup.find('h1', class_='srp-controls__count-heading').find('span').text)
     productPrice = None
     if total_result != 0:
-        productPriceTag = soup.find('span', class_='s-item__price')
+        productPriceUL = soup.find('ul', class_='srp-results srp-list clearfix')
+        if productPriceUL is None:
+            productPriceUL = soup.find('ul', class_='srp-results srp-grid clearfix')
+        productPriceTag = productPriceUL.find('span', class_='s-item__price')
         if productPriceTag is not None:
             productPrice = productPriceTag.text
             heading = soup.find_all('div', class_='s-item__title')[1].find('span', role='heading').text
@@ -62,7 +68,10 @@ def thirdColumn(search):
     total_result = int(soup.find('h1', class_='srp-controls__count-heading').find('span').text)
     productPrice = None
     if total_result != 0:
-        productPriceTag = soup.find('span', class_='s-item__price')
+        productPriceUL = soup.find('ul', class_='srp-results srp-list clearfix')
+        if productPriceUL is None:
+            productPriceUL = soup.find('ul', class_='srp-results srp-grid clearfix')
+        productPriceTag = productPriceUL.find('span', class_='s-item__price')
         if productPriceTag is not None:
             productPrice = productPriceTag.text
             heading = soup.find_all('div', class_='s-item__title')[1].find('span', role='heading').text
