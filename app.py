@@ -6,12 +6,8 @@ from time import sleep
 import random
 import os
 from scrapingbee import ScrapingBeeClient
-from dotenv import load_dotenv
-# Load environment variables from the .env file
-load_dotenv()
-# Access the API key
-api_key = os.getenv("API_KEY")
 
+api_key ='ILFRCJTPVMJAYQGXX8HG9305R9I9O8UMZQVYM2BVZ0KFVL369VHLWFCNJ31B81D06R6QJC2QAA4LKWO6'
 auth = HTTPBasicAuth()
 
 

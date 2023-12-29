@@ -4,3 +4,4 @@ requests==2.31.0
 beautifulsoup4==4.12.2
 Flask-HTTPAuth==4.8.0
 scrapingbee
+python-dotenv
