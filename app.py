@@ -109,8 +109,8 @@ def get_data():
             manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
             search = appliance + ' ' + manufacturerNum
             searches.append(search)
-        t = random.randint(2,6)
-        sleep(t)
+        # t = random.randint(2,6)
+        # sleep(t)
             # print(len(searches))
 
     data = []
