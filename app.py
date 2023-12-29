@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 from flask_httpauth import HTTPBasicAuth
+from time import sleep
+import random
 
 auth = HTTPBasicAuth()
 
@@ -107,7 +109,9 @@ def get_data():
             manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
             search = appliance + ' ' + manufacturerNum
             searches.append(search)
-            print(len(searches))
+        t = random.randint(2,6)
+        sleep(t)
+            # print(len(searches))
 
     data = []
     for search in searches[:2]:
