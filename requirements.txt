@@ -1,5 +1,5 @@
 Flask==3.0.0
-# Gunicorn
+Gunicorn
 requests==2.31.0
 beautifulsoup4==4.12.2
 Flask-HTTPAuth==4.8.0
