@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+</head>
+<body>
+    <h1>Search Results for Model: {{ modelNumber }}</h1>
+
+    <div id="resultTable"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var modelNumber = '{{ modelNumber }}';
+            fetch('/api/get_data?modelNumber=' + modelNumber)
+                .then(response => response.json())
+                .then(data => {
+                    var table = '<table border="1"><tr><th>Search</th><th>First Column</th><th>Second Column</th><th>Third Column</th></tr>';
+                    data.data.forEach(item => {
+                        table += '<tr><td>' + item.search + '</td><td>' + item.firstColumn + '</td><td>' + item.secondColumn + '</td><td>' + item.thirdColumn + '</td></tr>';
+                    });
+                    table += '</table>';
+                    document.getElementById('resultTable').innerHTML = table;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>

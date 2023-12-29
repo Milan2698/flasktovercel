@@ -122,12 +122,18 @@ def get_data():
         di['thirdColumn'] = third
         data.append(di)
 
-    return jsonify(data)
+    # Include the length of the searches list in the returned JSON data
+    response_data = {'length': len(searches), 'data': data}
+
+    return jsonify(response_data)
+
+    # return jsonify(data)
 
 @app.route('/')
 @auth.login_required
 def index():
     return render_template('index.html')
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+
+if __name__ == '__main__':
+    app.run(debug=True)
