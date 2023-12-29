@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from flask_httpauth import HTTPBasicAuth
 from time import sleep
 import random
+import undetected_chromedriver as uc
 
 auth = HTTPBasicAuth()
 
@@ -87,9 +88,12 @@ def thirdColumn(search):
 def get_data():
     modelNumber = request.args.get('modelNumber')
     print(modelNumber)
+    driver = uc.Chrome()
     partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
-    response = requests.get(partSelectURL)
-    soup = BeautifulSoup(response.content, 'html.parser')
+    # response = requests.get(partSelectURL)
+    # soup = BeautifulSoup(response.content, 'html.parser')
+    driver.get(partSelectURL)
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
     appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
     pagination = soup.find('ul', class_='pagination js-pagination')
     if pagination is not None:
@@ -101,8 +105,10 @@ def get_data():
 
     for page in range(1,total_page+1):
         partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
-        response = requests.get(partSelectURL)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        # response = requests.get(partSelectURL)
+        # soup = BeautifulSoup(response.content, 'html.parser')
+        driver.get(partSelectURL)
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
         partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
         for part in partDivElements:
             modelEle = part.find('div', class_='mb-1')
@@ -111,7 +117,8 @@ def get_data():
             searches.append(search)
         # t = random.randint(2,6)
         # sleep(t)
-            # print(len(searches))
+            print(len(searches))
+    driver.quit()
 
     data = []
     for search in searches[:2]:
@@ -139,5 +146,5 @@ def index():
     return render_template('index.html')
 
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
