@@ -88,7 +88,7 @@ def thirdColumn(search):
 def get_data():
     modelNumber = request.args.get('modelNumber')
     print(modelNumber)
-    driver = uc.Chrome(driver_executable_path='chromedriver.exe')
+    driver = uc.Chrome(driver_executable_path='chromedriver')
     partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
     # response = requests.get(partSelectURL)
     # soup = BeautifulSoup(response.content, 'html.parser')
