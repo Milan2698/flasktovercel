@@ -4,12 +4,19 @@ from bs4 import BeautifulSoup
 from flask_httpauth import HTTPBasicAuth
 from time import sleep
 import random
-import undetected_chromedriver as uc
+import os
+from scrapingbee import ScrapingBeeClient
+from dotenv import load_dotenv
+# Load environment variables from the .env file
+load_dotenv()
+# Access the API key
+api_key = os.getenv("API_KEY")
 
 auth = HTTPBasicAuth()
 
 
 app = Flask(__name__)
+chromedriver_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'chromedriver.exe')
 
 
 @auth.verify_password
@@ -88,37 +95,48 @@ def thirdColumn(search):
 def get_data():
     modelNumber = request.args.get('modelNumber')
     print(modelNumber)
-    driver = uc.Chrome(driver_executable_path='chromedriver')
-    partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
-    # response = requests.get(partSelectURL)
-    # soup = BeautifulSoup(response.content, 'html.parser')
-    driver.get(partSelectURL)
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
-    pagination = soup.find('ul', class_='pagination js-pagination')
-    if pagination is not None:
-        total_page = int(pagination.find_all('li')[-2].find('a').text)
-    else:
-        total_page = 1
 
     searches = []
+    client = ScrapingBeeClient(api_key=api_key)
+    partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
+    response = client.get(partSelectURL)
 
-    for page in range(1,total_page+1):
-        partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
-        # response = requests.get(partSelectURL)
-        # soup = BeautifulSoup(response.content, 'html.parser')
-        driver.get(partSelectURL)
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
-        for part in partDivElements:
-            modelEle = part.find('div', class_='mb-1')
-            manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
-            search = appliance + ' ' + manufacturerNum
-            searches.append(search)
-        # t = random.randint(2,6)
-        # sleep(t)
-            print(len(searches))
-    driver.quit()
+    soup = BeautifulSoup(response.content, "html.parser")
+    appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+    partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
+    for part in partDivElements:
+        modelEle = part.find('div', class_='mb-1')
+        manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
+        search = appliance + ' ' + manufacturerNum
+        searches.append(search)
+    
+    # partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
+    # response = requests.get(partSelectURL)
+    # soup = BeautifulSoup(response.content, 'html.parser')
+
+    # appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+    # pagination = soup.find('ul', class_='pagination js-pagination')
+    # if pagination is not None:
+    #     total_page = int(pagination.find_all('li')[-2].find('a').text)
+    # else:
+    #     total_page = 1
+
+    # searches = []
+
+    # for page in range(1,total_page+1):
+    #     partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
+    #     response = requests.get(partSelectURL)
+    #     soup = BeautifulSoup(response.content, 'html.parser')
+    #     partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
+    #     for part in partDivElements:
+    #         modelEle = part.find('div', class_='mb-1')
+    #         manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
+    #         search = appliance + ' ' + manufacturerNum
+    #         searches.append(search)
+    #     # t = random.randint(2,6)
+    #     # sleep(t)
+    #         print(len(searches))
+
 
     data = []
     for search in searches[:2]:
