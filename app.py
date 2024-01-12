@@ -135,7 +135,7 @@ def get_data():
 
 
     data = []
-    for search in searches[:2]:
+    for search in searches[:10]:
         di = {}
         first = firstColumn(search)
         second = secondColumn(search)
