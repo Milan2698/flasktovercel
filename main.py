@@ -82,5 +82,3 @@ def results():
 
     return render_template('results.html', modelNumber=modelNumber, results_list=results_list)
 
-if __name__ == '__main__':
-    app.run(debug=True)
