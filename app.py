@@ -98,8 +98,6 @@ def results():
     FIXED_PRICE = '{FIXED_PRICE}'
     NEW = '{NEW}'
     all_di = []
-    if len(searches)>20:
-        searches = searches[:20]
 
     for search in searches:
 
