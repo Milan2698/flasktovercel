@@ -1,26 +1,31 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, url_for, redirect
 import requests
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import os
+from flask import Flask, render_template, request
+import base64
+from datetime import datetime
 
 app = Flask(__name__)
-# app.secret_key = 'secret_key'
+app.secret_key = 'secret_key'
 
-access_token = os.getenv("EBAY_ACCESS_TOKEN")
+load_dotenv()
+client_id = os.getenv('client_id')
+client_secret = os.getenv('client_secret')
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/perform_search', methods=['POST'])
-def perform_search():
-    modelNumber = request.json['modelNumber']
-
+@app.route('/process', methods=['POST'])
+def process():
+    modelNumber = request.form.get('modelNumber')
     partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
     response = requests.get(partSelectURL)
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    appliance = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+    appliance  = soup.find('h1').text.split(modelNumber)[-1].split()[0]
 
     pagination = soup.find('ul', class_='pagination js-pagination')
     if pagination is not None:
@@ -29,8 +34,8 @@ def perform_search():
         total_page = 1
 
     searches = []
-    for page in range(1, total_page + 1):
-        partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber, page)
+    for page in range(1,total_page+1):
+        partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
         response = requests.get(partSelectURL)
         soup = BeautifulSoup(response.content, 'html.parser')
         partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
@@ -39,25 +44,30 @@ def perform_search():
             manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
             search = appliance + ' ' + manufacturerNum
             searches.append(search)
-
-    # Store data in the session
-    # session['modelNumber'] = modelNumber
-    # session['searches'] = searches
-    # modelNumber = session.get('modelNumber', None)
-    # searches = session.get('searches', [])
-
-    return jsonify({'searches_length': len(searches)})
+    session['searches'] = searches
+    session['modelNumber'] = modelNumber
+    return render_template('process.html', len_searches_list=len(searches))
 
 @app.route('/results')
 def results():
-    modelNumber = request.args.get('modelNumber')
-    searches = request.args.get('searches').split(',')
-    # modelNumber = session.get('modelNumber', None)
-    # searches = session.get('searches', [])
+    searches = session.get('searches', [])
+    modelNumber = session.get('modelNumber', '')
+    def find_value(search_url, search):
     
+        auth_url = "https://api.ebay.com/identity/v1/oauth2/token"
+        auth_headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Basic " + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
+        }
+        auth_payload = {
+            "grant_type": "client_credentials",
+            "scope": "https://api.ebay.com/oauth/api_scope"
+        }
 
-    def API(query):
-        search_url = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=1"
+        auth_response = requests.post(auth_url, headers=auth_headers, data=auth_payload)
+        auth_data = auth_response.json()
+        access_token = auth_data['access_token']
+
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
@@ -65,20 +75,40 @@ def results():
 
         search_response = requests.get(search_url, headers=headers)
         search_data = search_response.json()
-        di = dict()
+
+        di = []
         if "itemSummaries" in search_data:
             for item in search_data["itemSummaries"]:
-                di['Title'] = item['title']
-                di['Price'] = item['price']['value'] + ' ' + item['price']['currency']
-        else:
-            di = {"Title": "No search results found", "Price": ""}
+                if search.split()[-1] in item['title']:
+                    di = [item['title'],item['price']['value']+' '+item['price']['currency']]
+                    break
+
         return di
 
-    results_list = []
-    for search in searches[:5]:
-        query = search.replace(' ', '%20')
-        result = API(query)
-        results_list.append(result)
 
-    return render_template('results.html', modelNumber=modelNumber, results_list=results_list)
+    USED = '{USED}'
+    FIXED_PRICE = '{FIXED_PRICE}'
+    NEW = '{NEW}'
+    all_di = []
+    for search in searches[:10]:
 
+        query = search.replace(' ','%20')
+        #Buy it now, used, Low to High
+        search_url_1 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{USED}&filter=buyingOptions:{FIXED_PRICE}&sort=price"
+
+        #Buy it now, Sold Item, used, High to low
+        search_url_2 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{USED}&filter=buyingOptions:{FIXED_PRICE}&filter=lastSoldDate:[2019-01-01T00:00:00Z..{datetime.utcnow().isoformat()}z]&sort=-price"
+
+        #New, Buy it now, Low to High
+        search_url_3 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{NEW}&filter=buyingOptions:{FIXED_PRICE}&sort=price"
+        
+        di1 = find_value(search_url_1, search)
+        di2 = find_value(search_url_2, search) 
+        di3 = find_value(search_url_3, search)
+        di = [search,di1,di2,di3]
+        all_di.append(di)
+
+    return render_template('results.html', results_data=all_di, modelNumber=modelNumber)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)

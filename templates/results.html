@@ -2,20 +2,35 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Results</title>
+    <title>Results Page</title>
 </head>
 <body>
-    <h1>Search Results</h1>
-    <p>Model Number: {{ modelNumber }}</p>
-    <ul>
-        {% for result in results_list %}
-            <li>
-                <strong>Title:</strong> {{ result.Title }}<br>
-                <strong>Price:</strong> {{ result.Price }}<br>
-            </li>
+    <h2>Result for Model number: {{modelNumber}}</h2>
+    <br>
+    <table border="1">
+        <tr>
+            <th>search</th>
+            <th>1st result name</th>
+            <th>1st result price</th>
+            <th>2nd result name</th>
+            <th>2nd result price</th>
+            <th>3rd result name</th>
+            <th>3rd result price</th>
+        </tr>
+        {% for result in results_data %}
+            <tr>
+                <td>{{ result[0]}}</td>
+                <td>{{ result[1][0] }}</td>
+                <td>{{ result[1][1] }}</td>
+                <td>{{ result[2][0] }}</td>
+                <td>{{ result[2][1] }}</td>
+                <td>{{ result[3][0] }}</td>
+                <td>{{ result[3][1] }}</td>
+                <!-- Add price values accordingly -->
+            </tr>
         {% endfor %}
-    </ul>
+    </table>
+
 </body>
 </html>

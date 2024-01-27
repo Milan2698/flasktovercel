@@ -2,39 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PartSelect Search</title>
+    <title>Index Page</title>
 </head>
 <body>
-    <h1>PartSelect Search</h1>
-    <form id="searchForm">
-        <label for="modelNumber">Enter Model Number:</label>
+    <form action="/process" method="post">
+        <label for="modelNumber">Model Number:</label>
         <input type="text" id="modelNumber" name="modelNumber" required>
-        <button type="button" onclick="performSearch()">Search</button>
+        <button type="submit">Submit</button>
     </form>
-    <p id="searchesLength">Number of searches: </p>
-
-    <script>
-        function performSearch() {
-            var modelNumber = document.getElementById('modelNumber').value;
-
-            // Send an asynchronous request to the server
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/perform_search', true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4 && xhr.status == 200) {
-                    var responseData = JSON.parse(xhr.responseText);
-                    document.getElementById('searchesLength').innerText = 'Number of searches: ' + responseData.searches_length;
-
-                    // Redirect to the results page with parameters
-                    window.location.href = '/results?modelNumber=' + responseData.modelNumber + '&searches=' + responseData.searches.join(',');
-                }
-            };
-
-            xhr.send(JSON.stringify({ modelNumber: modelNumber }));
-        }
-    </script>
 </body>
 </html>
