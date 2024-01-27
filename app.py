@@ -6,6 +6,7 @@ import os
 from flask import Flask, render_template, request
 import base64
 from datetime import datetime
+from flask_httpauth import HTTPBasicAuth
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -14,7 +15,14 @@ load_dotenv()
 client_id = os.getenv('client_id')
 client_secret = os.getenv('client_secret')
 
+auth = HTTPBasicAuth()
+@auth.verify_password
+def verify_password(username, password):
+    # Replace 'your_username' and 'your_password' with your desired credentials
+    return username == 'admin' and password == '123'
+
 @app.route('/')
+@auth.login_required
 def index():
     return render_template('index.html')
 
@@ -90,7 +98,10 @@ def results():
     FIXED_PRICE = '{FIXED_PRICE}'
     NEW = '{NEW}'
     all_di = []
-    for search in searches[:10]:
+    if len(searches)>20:
+        searches = searches[:20]
+
+    for search in searches:
 
         query = search.replace(' ','%20')
         #Buy it now, used, Low to High
