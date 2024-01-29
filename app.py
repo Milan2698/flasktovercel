@@ -30,7 +30,8 @@ def index():
 def process():
     modelNumber = request.form.get('modelNumber')
     partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
-    response = requests.get(partSelectURL)
+    headers={'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0'}
+    response = requests.get(partSelectURL, headers=headers)
     soup = BeautifulSoup(response.content, 'html.parser')
 
     appliance  = soup.find('h1').text.split(modelNumber)[-1].split()[0]
@@ -40,18 +41,20 @@ def process():
         total_page = int(pagination.find_all('li')[-2].find('a').text)
     else:
         total_page = 1
+    print(total_page)
 
     searches = []
     for page in range(1,total_page+1):
         partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
-        response = requests.get(partSelectURL)
+        response = requests.get(partSelectURL, headers= headers)
         soup = BeautifulSoup(response.content, 'html.parser')
-        partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
-        for part in partDivElements:
-            modelEle = part.find('div', class_='mb-1')
-            manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
-            search = appliance + ' ' + manufacturerNum
-            searches.append(search)
+        if soup.find('div', class_='row mt-3 align-items-stretch') is not None:
+            partDivElements = soup.find('div', class_='row mt-3 align-items-stretch').find_all('div', class_='col-md-6 mb-3')
+            for part in partDivElements:
+                modelEle = part.find('div', class_='mb-1')
+                manufacturerNum = modelEle.get_text(strip=True).split(':')[-1].strip()
+                search = appliance + ' ' + manufacturerNum
+                searches.append(search)
     session['searches'] = searches
     session['modelNumber'] = modelNumber
     return render_template('process.html', len_searches_list=len(searches))
