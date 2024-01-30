@@ -42,7 +42,8 @@ def process():
     else:
         total_page = 1
     print(total_page)
-
+    print('response code: ', response)
+    print(soup)
     searches = []
     for page in range(1,total_page+1):
         partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
@@ -101,8 +102,8 @@ def results():
     FIXED_PRICE = '{FIXED_PRICE}'
     NEW = '{NEW}'
     all_di = []
-    # if len(searches)>16:
-    #     searches = searches[:15]
+    if len(searches)>16:
+        searches = searches[:15]
 
     for search in searches:
 
@@ -121,6 +122,7 @@ def results():
         di3 = find_value(search_url_3, search)
         di = [search,di1,di2,di3]
         all_di.append(di)
+        
 
     return render_template('results.html', results_data=all_di, modelNumber=modelNumber)
 

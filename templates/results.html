@@ -31,6 +31,13 @@
             </tr>
         {% endfor %}
     </table>
+    <!-- Add a button to load more results -->
+    {% if current_page < total_pages %}
+        <form method="post" action="{{ url_for('results', page=current_page + 1) }}">
+            <input type="submit" value="Load More Results">
+        </form>
+    {% endif %}
+    <p>New version</p>
 
 </body>
 </html>
