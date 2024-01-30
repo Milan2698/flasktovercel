@@ -43,7 +43,7 @@ def process():
         total_page = 1
     print(total_page)
     print('response code: ', response)
-    print(soup)
+
     searches = []
     for page in range(1,total_page+1):
         partSelectURL = 'https://www.partselect.com/Models/{}/Parts/?start={}'.format(modelNumber,page)
@@ -106,6 +106,7 @@ def results():
         searches = searches[:16]
 
     for search in searches:
+        print('Index from searches: ',searches.index(search))
 
         query = search.replace(' ','%20')
         #Buy it now, used, Low to High
