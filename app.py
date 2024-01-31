@@ -29,6 +29,7 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     modelNumber = request.form.get('modelNumber')
+    priceLimit = request.form.get('priceLimit')
 
     partSelectURL = 'https://www.partselect.com/Models/{}/'.format(modelNumber)
     headers={'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0'}
@@ -63,12 +64,15 @@ def process():
                 searches.append(search)
     session['searches'] = searches
     session['modelNumber'] = modelNumber
+    session['priceLimit'] = priceLimit
+
     return render_template('process.html', len_searches_list=len(searches))
 
 @app.route('/results')
 def results():
     searches = session.get('searches', [])
     modelNumber = session.get('modelNumber', '')
+    priceLimit = session.get('priceLimit', '')
     def find_value(search_url, search):
     
         auth_url = "https://api.ebay.com/identity/v1/oauth2/token"
@@ -96,9 +100,10 @@ def results():
         di = []
         if "itemSummaries" in search_data:
             for item in search_data["itemSummaries"]:
-                if search.split()[-1] in item['title']:
-                    di = [item['title'],item['price']['value']+' '+item['price']['currency']]
-                    break
+                if float(item['price']['value']) >= priceLimit:
+                    if search.split()[-1] in item['title']:
+                        di = [item['title'],item['price']['value']+' '+item['price']['currency']]
+                        break
 
         return di
 
