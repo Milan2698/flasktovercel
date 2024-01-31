@@ -100,7 +100,7 @@ def results():
         di = []
         if "itemSummaries" in search_data:
             for item in search_data["itemSummaries"]:
-                if float(item['price']['value']) >= priceLimit:
+                if float(item['price']['value']) >= float(priceLimit):
                     if search.split()[-1] in item['title']:
                         di = [item['title'],item['price']['value']+' '+item['price']['currency']]
                         break
