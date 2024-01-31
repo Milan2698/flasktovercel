@@ -29,12 +29,17 @@ def index():
 @app.route('/process', methods=['POST'])
 def process():
     modelNumber = request.form.get('modelNumber')
-    partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
+
+    partSelectURL = 'https://www.partselect.com/Models/{}/'.format(modelNumber)
     headers={'User-Agent':'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:66.0) Gecko/20100101 Firefox/66.0'}
     response = requests.get(partSelectURL, headers=headers)
     soup = BeautifulSoup(response.content, 'html.parser')
 
-    appliance  = soup.find('h1').text.split(modelNumber)[-1].split()[0]
+    appliance  = ' '.join(soup.find('h1').text.replace('- Overview','').strip().split()[1:-1])
+
+    partSelectURL = 'https://www.partselect.com/Models/{}/Parts/'.format(modelNumber)
+    response = requests.get(partSelectURL, headers=headers)
+    soup = BeautifulSoup(response.content, 'html.parser')
 
     pagination = soup.find('ul', class_='pagination js-pagination')
     if pagination is not None:
