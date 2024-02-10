@@ -73,69 +73,75 @@ def results():
     searches = session.get('searches', [])
     modelNumber = session.get('modelNumber', '')
     priceLimit = session.get('priceLimit', '')
-    def find_value(search_url, search):
-    
-        auth_url = "https://api.ebay.com/identity/v1/oauth2/token"
-        auth_headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Authorization": "Basic " + base64.b64encode(f"{client_id}:{client_secret}".encode()).decode(),
-        }
-        auth_payload = {
-            "grant_type": "client_credentials",
-            "scope": "https://api.ebay.com/oauth/api_scope"
-        }
-
-        auth_response = requests.post(auth_url, headers=auth_headers, data=auth_payload)
-        auth_data = auth_response.json()
-        access_token = auth_data['access_token']
-
+    def find_value(params, min_price):
+        ENDPOINT = 'https://svcs.ebay.com/services/search/FindingService/v1'
         headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
+        'X-EBAY-SOA-SECURITY-APPNAME': client_id,
+        'X-EBAY-SOA-OPERATION-NAME': 'findItemsAdvanced',
+        'X-EBAY-SOA-RESPONSE-DATA-FORMAT': 'JSON',
+        'X-EBAY-SOA-SERVICE-NAME': 'FindingService',
+        'X-EBAY-SOA-SERVICE-VERSION': '1.0.0'
         }
 
-        search_response = requests.get(search_url, headers=headers)
-        search_data = search_response.json()
+        if min_price:
+            params['itemFilter(0).name'] = 'MinPrice'
+            params['itemFilter(0).value'] = min_price
 
+
+        response = requests.get(ENDPOINT, headers=headers, params=params)
+        response_json = response.json()
+        items = response_json.get("findItemsAdvancedResponse", {})[0].get("searchResult", {})[0].get("item", [])
+        page_url = response_json['findItemsAdvancedResponse'][0]['itemSearchURL'][0]
         di = []
-        if "itemSummaries" in search_data:
-            for item in search_data["itemSummaries"]:
-                if float(item['price']['value']) >= float(priceLimit):
-                    if search.split()[-1] in item['title']:
-                        di = [item['title'],item['price']['value']+' '+item['price']['currency']]
-                        break
+        for item in items[:1]:
+            title = item.get("title", "N/A")[0]
+            price = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("__value__", {})
+            currency = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("@currencyId", {})
+            di = [title, price+' '+currency, page_url]
 
         return di
 
 
-    USED = '{USED}'
-    FIXED_PRICE = '{FIXED_PRICE}'
-    NEW = '{NEW}'
+    
     all_di = []
     if len(searches)>17:
         searches = searches[:16]
 
     for search in searches:
-        print('Index from searches: ',searches.index(search))
+        params1 = {
+        'keywords': search,
+        'paginationInput': {
+            'entriesPerPage': 1,
+            'pageNumber': 1
+        },
+        'itemFilter(0).name': 'ListingType',
+        'itemFilter(0).value': 'FixedPrice',  # Buy It Now
 
-        query = search.replace(' ','%20')
-        #Buy it now, used, Low to High
-        search_url_1 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{USED}&filter=buyingOptions:{FIXED_PRICE}&sort=price"
+        'itemFilter(1).name': 'Condition',
+        'itemFilter(1).value': 'Used',  # Used Condition
+        'sortOrder': 'PricePlusShippingLowest'  # Sort by price from high to low
+        }
+        params3 = {
+                'keywords': search,
+                'paginationInput': {
+                    'entriesPerPage': 1,
+                    'pageNumber': 1
+                },
+                'itemFilter(0).name': 'ListingType',
+                'itemFilter(0).value': 'FixedPrice',  # Buy It Now
+                'itemFilter(1).name': 'Condition',
+                'itemFilter(1).value': 'New',  # Used Condition
+                'sortOrder': 'PricePlusShippingLowest'  # Sort by price from high to low
+            }
 
-        #Buy it now, Sold Item, used, High to low
-        search_url_2 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{USED}&filter=buyingOptions:{FIXED_PRICE}&filter=lastSoldDate:[2019-01-01T00:00:00Z..{datetime.utcnow().isoformat()}z]&sort=-price"
-
-        #New, Buy it now, Low to High
-        search_url_3 = f"https://api.ebay.com/buy/browse/v1/item_summary/search?q={query}&limit=2&filter=conditions:{NEW}&filter=buyingOptions:{FIXED_PRICE}&sort=price"
         
-        di1 = find_value(search_url_1, search)
-        di2 = find_value(search_url_2, search) 
-        di3 = find_value(search_url_3, search)
-        di = [search,di1,di2,di3]
+        di1 = find_value(params1,  min_price = priceLimit)
+        di3 = find_value(params3,  min_price = priceLimit)
+        di = [search,di1,di3]
         all_di.append(di)
         
 
     return render_template('results.html', results_data=all_di, modelNumber=modelNumber)
 
-# if __name__ == '__main__':
-#     app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)

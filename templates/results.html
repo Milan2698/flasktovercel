@@ -13,20 +13,20 @@
             <th>search</th>
             <th>Used L/H</th>
             <th>Price</th>
-            <th>Sold Used H/L</th>
-            <th>Price</th>
+            <th>URL</th>
             <th>New L/H</th>
             <th>Price</th>
+            <th>URL</th>
         </tr>
         {% for result in results_data %}
             <tr>
                 <td>{{ result[0]}}</td>
                 <td>{{ result[1][0] }}</td>
                 <td>{{ result[1][1] }}</td>
+                <td>{{ result[1][2] }}</td>
                 <td>{{ result[2][0] }}</td>
                 <td>{{ result[2][1] }}</td>
-                <td>{{ result[3][0] }}</td>
-                <td>{{ result[3][1] }}</td>
+                <td>{{ result[2][2] }}</td>
                 <!-- Add price values accordingly -->
             </tr>
         {% endfor %}
