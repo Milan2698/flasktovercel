@@ -83,10 +83,6 @@ def results():
         'X-EBAY-SOA-SERVICE-VERSION': '1.0.0'
         }
 
-        if min_price:
-            params['itemFilter(0).name'] = 'MinPrice'
-            params['itemFilter(0).value'] = min_price
-
 
         response = requests.get(ENDPOINT, headers=headers, params=params)
         response_json = response.json()
@@ -97,7 +93,8 @@ def results():
             title = item.get("title", "N/A")[0]
             price = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("__value__", {})
             currency = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("@currencyId", {})
-            di = [title, price+' '+currency, page_url]
+            if price >= int(min_price):
+                di = [title, price+' '+currency, page_url]
 
         return di
 
