@@ -93,7 +93,7 @@ def results():
             title = item.get("title", "N/A")[0]
             price = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("__value__", {})
             currency = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("@currencyId", {})
-            if int(price) >= int(min_price):
+            if float(price) >= float(min_price):
                 di = [title, price+' '+currency, page_url]
 
         return di
