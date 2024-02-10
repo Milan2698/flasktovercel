@@ -89,12 +89,16 @@ def results():
         items = response_json.get("findItemsAdvancedResponse", {})[0].get("searchResult", {})[0].get("item", [])
         page_url = response_json['findItemsAdvancedResponse'][0]['itemSearchURL'][0]
         di = []
+        title = ''
+        price = 0
         for item in items[:1]:
             title = item.get("title", "N/A")[0]
             price = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("__value__", {})
             currency = item.get("sellingStatus", {})[0].get("currentPrice", {})[0].get("@currencyId", {})
             if float(price) >= float(min_price):
                 di = [title, price+' '+currency, page_url]
+            else:
+                di = ['', '', page_url]
 
         return di
 
